@@ -1,93 +1,85 @@
-const API_KEY = "f3ae7a31352c7eef011d8a9065890ceb";
+const eventForm = document.getElementById("eventForm");
+const eventTitle = document.getElementById("eventTitle");
+const eventDate = document.getElementById("eventDate");
+const eventCategory = document.getElementById("eventCategory");
+const eventDescription = document.getElementById("eventDescription");
+const clearAllBtn = document.getElementById("clearAllBtn");
+const addSampleBtn = document.getElementById("addSampleBtn");
+const demoContent = document.getElementById("demoContent");
+const eventContainer = document.getElementById("eventContainer");
 
-const weatherBox = document.getElementById("weather");
-const historyBox = document.getElementById("history");
-const cityInput = document.getElementById("cityInput");
-
-/* ---------- WEATHER FETCH ---------- */
-async function getWeather(city) {
-    const res = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
-    );
-
-    if (!res.ok) {
-        alert("city not found");
-        throw new Error("City not found");
+const sampleEvent = [
+    {
+        title: "web-Dev",
+        date: "4-5-23",
+        category: "workshop",
+        description: "iubuvihu ohfowihfw fuwbwi"
+    },
+    {
+        title: "web-Dev2",
+        date: "3-3-25",
+        category: "confrence",
+        description: "nud buwouhw h9whg9wro g"
     }
+];
 
-    const data = await res.json();
-    return data;
-}
+eventForm.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-/* ---------- BUTTON CLICK ---------- */
-document.getElementById("searchBtn").onclick = () => {
-    const city = cityInput.value.trim();
-    if (city) {
-        search(city);
-    }
-};
+    const eventData = {
+        title: eventTitle.value,
+        date: eventDate.value,
+        category: eventCategory.value,
+        description: eventDescription.value
+    };
 
-/* ---------- UI RENDER ---------- */
-function renderWeather(d) {
-    document.getElementById("weatherEmpty").style.display = "none";
-
-    weatherBox.innerHTML = `
-        <div class="weather-item"><label>City</label><span>${d.name}, ${d.sys.country}</span></div>
-        <div class="weather-item"><label>Temperature</label><span>${d.main.temp} °C</span></div>
-        <div class="weather-item"><label>Weather</label><span>${d.weather[0].main}</span></div>
-        <div class="weather-item"><label>Humidity</label><span>${d.main.humidity}%</span></div>
-        <div class="weather-item"><label>Wind Speed</label><span>${d.wind.speed} m/s</span></div>
-    `;
-}
-
-/* ---------- SAVE SEARCH HISTORY ---------- */
-function saveHistory(city) {
-    let history = JSON.parse(localStorage.getItem("weatherHistory") || "[]");
-
-    history.unshift(city);
-
-    localStorage.setItem("weatherHistory", JSON.stringify(history));
-
-    showHistory();
-}
-
-/* ---------- SHOW HISTORY ---------- */
-function showHistory() {
-    let history = JSON.parse(localStorage.getItem("weatherHistory") || "[]");
-
-    historyBox.innerHTML = "";
-
-    history.forEach(function(city) {
-        let btn = document.createElement("button");
-        btn.className = "hist-pill";
-        btn.textContent = city;
-        btn.onclick = function() { search(city); };
-        historyBox.appendChild(btn);
-    });
-}
-
-/* ---------- SEARCH FUNCTION ---------- */
-async function search(city) {
-    weatherBox.innerHTML = "";
-
-    try {
-        const data = await getWeather(city);
-        renderWeather(data);
-        saveHistory(data.name);
-    } catch (error) {
-        weatherBox.innerHTML = `<p style="color:red">${error.message}</p>`;
-    }
-}
-
-/* ---------- ENTER KEY SEARCH ---------- */
-cityInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-        const city = cityInput.value.trim();
-        if (city) {
-            search(city);
-        }
-    }
+    addEvent(eventData);
 });
 
-/* ---------- INITIAL LOAD ---------- */
-showHistory();
+function createEventCard(eventData) {
+    const card = document.createElement("div");
+    card.classList.add("event-card");   // FIXED
+
+    card.innerHTML = `
+        <button class="delete-btn">X</button>
+        <h3>${eventData.title}</h3>
+        <div>${eventData.date}</div>
+        <span>${eventData.category}</span>
+        <p>${eventData.description}</p>
+    `;
+
+    return card;
+}
+
+function addEvent(eventData) {
+    const emptyState = document.querySelector(".empty-state");
+    if (emptyState) emptyState.remove();  // FIXED
+
+    eventContainer.appendChild(createEventCard(eventData));
+}
+
+clearAllBtn.addEventListener("click", () => {
+    eventContainer.innerHTML = `<div class="empty-state">No events yet. Add your first event!</div>`; // FIXED
+});
+
+eventContainer.addEventListener("click", (event) => {
+    if (event.target.classList.contains("delete-btn")) {
+        const card = event.target.closest(".event-card"); // FIXED
+        if (card) card.remove();
+    }
+
+    if (!eventContainer.querySelector(".event-card")) {
+        eventContainer.innerHTML = `
+            <div class="empty-state">
+                No events yet. Add your first event!
+            </div>`
+    }
+
+});
+
+
+addSampleBtn.addEventListener("click", () => {
+    sampleEvent.forEach(event => {
+        addEvent(event);
+    });
+});
